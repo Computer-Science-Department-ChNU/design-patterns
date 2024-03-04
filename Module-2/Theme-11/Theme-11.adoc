@@ -1,0 +1,11 @@
+= Техніки рефакторингу (Спрощення умовних виразів)
+:toc:
+:toc-title: Зміст
+
+include::1.adoc[]
+
+include::2.adoc[]
+
+include::3.adoc[]
+
+include::4.adoc[]
