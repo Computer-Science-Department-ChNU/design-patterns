@@ -1,0 +1,101 @@
+== Покращення кодової бази для усунення запахів коду (Large Class)
+
+*Основні завдання:*
+
+. Аналіз коду: оцінити, які функції виконує клас і які дані він обробляє. Виявити, які частини класу можна виокремити в окремі класи або методи.
+
+. Виокремлення відповідальностей: розбиття класу на більш малі компоненти, кожен з яких відповідає за конкретну відповідальність. Наприклад, якщо клас має функції, пов'язані з обробкою вхідних даних та відображенням результатів, ці функції можна виокремити у відповідні класи.
+
+. Розділення функцій: розбиття великих методів на менші, більш конкретні методи. Це сприятиме збереженню коду більш чистим та легким для розуміння.
+
+. Підтвердження роботи: після рефакторингу впевнитися, що клас все ще працює правильно та відповідає вимогам функціональності.
+
+*Додаткові завдання:*
+
+. Реалізувати модульні тести для перевірки нових класів та методів, щоб підтвердити їх правильну роботу.
+. Порівняти оригінальний великий клас та нову, рефакторизовану версію, щоб продемонструвати покращення в структурі та читабельності коду.
+
+[source, java]
+----
+public class Order {
+    private String customerName;
+    private List<String> items;
+    private double totalPrice;
+
+    public Order(String customerName, List<String> items) {
+        this.customerName = customerName;
+        this.items = items;
+        this.totalPrice = calculateTotalPrice();
+    }
+
+    public void processOrder() {
+        // Багато коду для обробки замовлення
+        // Цей метод став дуже довгим і складним для розуміння
+    }
+
+    private double calculateTotalPrice() {
+        double price = 0.0;
+        for (String item : items) {
+            // Логіка для розрахунку ціни кожного товару
+            // Додати до загальної ціни
+        }
+        return price;
+    }
+
+    // Багато інших методів, які опрацьовують замовлення
+}
+----
+
+[source, java]
+----
+public class LargeClass {
+    private String name;
+    private int age;
+    private String gender;
+    private List<String> friends;
+    private List<String> enemies;
+    private List<String> tasks;
+
+    public LargeClass(String name, int age, String gender) {
+        this.name = name;
+        this.age = age;
+        this.gender = gender;
+        this.friends = new ArrayList<>();
+        this.enemies = new ArrayList<>();
+        this.tasks = new ArrayList<>();
+    }
+
+    public void addFriend(String friend) {
+        this.friends.add(friend);
+    }
+
+    public void removeFriend(String friend) {
+        this.friends.remove(friend);
+    }
+
+    public void addEnemy(String enemy) {
+        this.enemies.add(enemy);
+    }
+
+    public void removeEnemy(String enemy) {
+        this.enemies.remove(enemy);
+    }
+
+    public void addTask(String task) {
+        this.tasks.add(task);
+    }
+
+    public void removeTask(String task) {
+        this.tasks.remove(task);
+    }
+
+    public void displayInfo() {
+        System.out.println("Name: " + this.name);
+        System.out.println("Age: " + this.age);
+        System.out.println("Gender: " + this.gender);
+        System.out.println("Friends: " + this.friends);
+        System.out.println("Enemies: " + this.enemies);
+        System.out.println("Tasks: " + this.tasks);
+    }
+}
+----
