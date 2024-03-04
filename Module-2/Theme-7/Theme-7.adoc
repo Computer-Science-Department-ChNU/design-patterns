@@ -1,0 +1,15 @@
+= Запахи коду
+:toc:
+:toc-title: Зміст
+
+include::1.adoc[]
+
+include::2.adoc[]
+
+include::3.adoc[]
+
+include::4.adoc[]
+
+include::5.adoc[]
+
+include::6.adoc[]
