@@ -1,0 +1,191 @@
+= Техніки рефакторингу (Спрощення умовних виразів)
+:toc:
+:toc-title: Зміст
+
+== 1. Decompose Conditional
+Проблема: У вас є складний умовний оператор (if-then/else або switch).
+
+Рішення: Виділіть в окремі методи усі складні частини оператора: умова, then і else.
+
+Припустимо, у нас є складний умовний оператор, що визначає, чи може користувач отримати доступ до певного ресурсу. Розкласти на окремі методи (checkAccess, isAccessAllowed) для кожної частини умови.
+
+[source, java]
+----
+public void checkAccess(User user, Resource resource) {
+    if (user != null && user.isLoggedIn() && resource != null) {
+        if (user.hasPermission(resource)) {
+            // Доступ дозволено
+            System.out.println("Access granted");
+        } else {
+            // Доступ заборонено
+            System.out.println("Access denied");
+        }
+    } else {
+        // Доступ заборонено
+        System.out.println("Access denied");
+    }
+}
+----
+
+== 2. Consolidate Conditional Expression
+Проблема: У вас є декілька умовних операторів, що ведуть до однакового результату або дії.
+
+Рішення: Об’єднайте всі умови в одному умовному операторі.
+
+[source, java]
+----
+public void processPayment(double amount, boolean isMember, boolean isDiscountAvailable) {
+    if (amount > 100 && isMember) {
+        applyDiscount();
+    }
+    if (amount > 200 && isDiscountAvailable) {
+        applyDiscount();
+    }
+}
+----
+
+== 3. Consolidate Duplicate Conditional Fragments
+Проблема: Однаковий фрагмент коду знаходиться в усіх гілках умовного оператора.
+
+Рішення: Винесіть його за рамки оператора.
+
+[source, java]
+----
+public void processOrder(int quantity, double price) {
+    if (quantity > 10) {
+        // Дубльований фрагмент
+        applyDiscount();
+        // Операція 1
+    } else {
+        // Операція 1
+    }
+
+    if (price > 100) {
+        // Дубльований фрагмент
+        applyDiscount();
+        // Операція 2
+    } else {
+        // Операція 2
+    }
+}
+
+----
+
+== 4. Remove Control Flag
+Проблема: У вас є булева змінна, яка грає роль керуючого флагу для декількох булевих виразів.
+
+Рішення: Використайте break, continue і return замість цієї змінної.
+
+[source, java]
+----
+public void searchElement(int[] array, int target) {
+    boolean found = false;
+
+    for (int i = 0; i < array.length; i++) {
+        if (array[i] == target) {
+            found = true;
+            break;
+        }
+    }
+
+    if (found) {
+        System.out.println("Element found");
+    } else {
+        System.out.println("Element not found");
+    }
+}
+----
+
+== 5. Replace Nested Conditional with Guard Clauses
+Проблема: У вас є група вкладених умовних операторів, серед яких складно виділити нормальний хід виконання коду.
+
+Рішення: Виділіть усі перевірки спеціальних або граничних випадків виконання в окремі умови і поставте їх перед основними перевірками. В ідеалі, ви повинні отримати «плаский» список умовних операторів, що йдуть один за іншим.
+
+[source, java]
+----
+public void processOrder(int quantity, double price) {
+    if (quantity > 0) {
+        if (price > 0) {
+            // Основна логіка
+            System.out.println("Order processed successfully");
+        } else {
+            System.out.println("Invalid price");
+        }
+    } else {
+        System.out.println("Invalid quantity");
+    }
+}
+
+----
+
+== 6. Replace Conditional with Polymorphism
+Проблема: У вас є умовний оператор, який, залежно від типу або властивостей об’єкта, виконує різні дії.
+
+Рішення: Створіть підкласи, яким відповідають гілки умовного оператора. У них створіть спільний метод і перемістіть в нього код з відповідної гілки умовного оператора. Згодом проведіть заміну умовного оператора на виклик цього методу. Таким чином, потрібна реалізація вибиратиметься через поліморфізм залежно від класу об’єкта.
+
+Припустимо, що є умовний оператор, який в залежності від типу фігури виконує різні обчислення площі. Переписати код, використовуючи поліморфізм та підкласи для кожного типу фігури.
+
+[source, java]
+----
+public double calculateArea(Shape shape) {
+    if (shape instanceof Circle) {
+        Circle circle = (Circle) shape;
+        return Math.PI * circle.getRadius() * circle.getRadius();
+    } else if (shape instanceof Rectangle) {
+        Rectangle rectangle = (Rectangle) shape;
+        return rectangle.getLength() * rectangle.getWidth();
+    } else {
+        throw new IllegalArgumentException("Unsupported shape type");
+    }
+}
+
+----
+
+== 7. Introduce Null Object
+Проблема: Через те, що деякі методи повертають null замість реальних об’єктів, у вас в коді присутня безліч перевірок на null.
+
+Рішення: Замість null повертайте Null-об’єкт, який надає поведінку за умовчанням.
+
+Припустимо, що у вас є клас Customer, який може мати зв'язок з об'єктом Address, але може також бути без адреси. У цьому випадку, якщо клас Customer не має адреси, метод getAddress() повертатиме null. Замість цього ми можемо створити Null Object для Address. Використати Null Object у класі Customer.
+
+[source, java]
+----
+public class Customer {
+    private Address address;
+
+    public Customer(Address address) {
+        this.address = address;
+    }
+
+    public Address getAddress() {
+        return address;
+    }
+}
+
+public class Address {
+    private String street;
+    private String city;
+
+    // Конструктор, геттери та інші методи
+}
+----
+
+== 8. Introduce Assertion
+Проблема: Коректна робота ділянки коду припускає наявність якихось певних умов або значень.
+
+Рішення: Замініть ці припущення конкретними перевірками.
+
+Припустимо, у вас є метод calculateAverage, який обчислює середнє арифметичне значення масиву чисел. Проте, якщо масив numbers буде порожнім, цей метод викине ArithmeticException, оскільки ділення на нуль не допускається. Щоб уникнути цієї ситуації, використати твердження для перевірки переданих аргументів.
+
+
+[source, java]
+----
+public double calculateAverage(int[] numbers) {
+    int sum = 0;
+    for (int number : numbers) {
+        sum += number;
+    }
+    return sum / numbers.length;
+}
+----
+
