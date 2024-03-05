@@ -1,0 +1,389 @@
+= Техніки рефакторингу (Задачі узагальнення об'єктів)
+:toc:
+:toc-title: Зміст
+
+== 1. Pull Up Field
+Проблема: Два класи мають одне і те ж поле.
+
+Рішення: Перемістіть поле в суперклас, прибравши його з підкласів.
+
+[source, java]
+----
+class Vehicle {
+    // Поле, яке повторюється в підкласах
+    protected String color;
+
+    public Vehicle(String color) {
+        this.color = color;
+    }
+}
+
+class Car extends Vehicle {
+    // Додаткові поля для підкласу Car
+    private String model;
+
+    public Car(String color, String model) {
+        super(color);
+        this.model = model;
+    }
+}
+
+class Truck extends Vehicle {
+    // Додаткові поля для підкласу Truck
+    private int loadCapacity;
+
+    public Truck(String color, int loadCapacity) {
+        super(color);
+        this.loadCapacity = loadCapacity;
+    }
+}
+----
+
+== 2. Pull Up Method
+Проблема: Підкласи мають методи, які роблять схожу роботу.
+
+Рішення: В цьому випадку треба зробити методи ідентичними, а потім перемістити їх в суперклас.
+
+[source, java]
+----
+class Animal {
+    // Суперклас Animal
+}
+
+class Dog extends Animal {
+    public void bark() {
+        System.out.println("Woof woof!");
+    }
+}
+
+class Cat extends Animal {
+    public void meow() {
+        System.out.println("Meow meow!");
+    }
+}
+----
+
+== 3. Pull Up Constructor Body
+Проблема: Підкласи мають конструктори з переважно однаковим кодом.
+
+Рішення: Створіть конструктор в суперкласі і винесіть в нього спільний для підкласів код. Викликайте конструктор суперкласу в конструкторах підкласу.
+
+[source, java]
+----
+class Animal {
+    String name;
+    int age;
+
+    public Animal(String name, int age) {
+        this.name = name;
+        this.age = age;
+    }
+}
+
+class Dog extends Animal {
+    String breed;
+
+    public Dog(String name, int age, String breed) {
+        super(name, age);
+        this.breed = breed;
+    }
+}
+
+class Cat extends Animal {
+    String color;
+
+    public Cat(String name, int age, String color) {
+        super(name, age);
+        this.color = color;
+    }
+}
+----
+
+== 4. Push Down Method
+Проблема: Поведінка, реалізована в суперкласі, використовується тільки одним або декількома підкласами.
+
+Рішення: Перемістіть цю поведінку в підкласи.
+
+[source, java]
+----
+class Animal {
+    void makeSound() {
+        System.out.println("Animal makes a sound");
+    }
+}
+
+class Dog extends Animal {
+    // Метод makeSound не використовується в класі Dog
+}
+
+class Cat extends Animal {
+    void makeSound() {
+        System.out.println("Meow");
+    }
+}
+----
+
+== 5. Push Down Field
+Проблема: Поле використовується тільки в деяких підкласах.
+
+Рішення: Перемістіть поле в ці підкласи.
+
+[source, java]
+----
+class Vehicle {
+    protected String brand;
+    protected String model;
+}
+
+class Car extends Vehicle {
+    // Клас Car використовує лише поле model, а поле brand не використовується
+}
+
+class Truck extends Vehicle {
+    // Клас Truck використовує лише поле model, а поле brand не використовується
+}
+----
+
+== 6. Extract Subclass
+Проблема: Клас має фічи, які використовуються тільки в певних випадках.
+
+Рішення: Створіть підклас і використовуйте його в цих випадках.
+
+[source, java]
+----
+
+----
+
+== 7. Extract Superclass
+Проблема: У вас є два класи із схожими полями і методами.
+
+Рішення: Створіть для них спільний суперклас і перенесіть туди схожі поля і методи.
+
+[source, java]
+----
+class Employee {
+    private String name;
+    private double salary;
+
+    public Employee(String name, double salary) {
+        this.name = name;
+        this.salary = salary;
+    }
+
+    public void displayDetails() {
+        System.out.println("Name: " + name);
+        System.out.println("Salary: $" + salary);
+    }
+}
+
+class Manager {
+    private String name;
+    private double salary;
+    private String department;
+
+    public Manager(String name, double salary, String department) {
+        this.name = name;
+        this.salary = salary;
+        this.department = department;
+    }
+
+    public void displayDetails() {
+        System.out.println("Name: " + name);
+        System.out.println("Salary: $" + salary);
+        System.out.println("Department: " + department);
+    }
+}
+----
+
+== 8. Extract Interface
+Проблема: Декілька клієнтів користуються однією і тією ж частиною інтерфейсу класу. Або в двох класах частина інтерфейсу виявилася спільною.
+
+Рішення: Виділіть цю спільну частину в свій власний інтерфейс.
+
+[source, java]
+----
+class Rectangle {
+    private double width;
+    private double height;
+
+    public Rectangle(double width, double height) {
+        this.width = width;
+        this.height = height;
+    }
+
+    public double calculateArea() {
+        return width * height;
+    }
+
+    public double calculatePerimeter() {
+        return 2 * (width + height);
+    }
+}
+
+class Square {
+    private double side;
+
+    public Square(double side) {
+        this.side = side;
+    }
+
+    public double calculateArea() {
+        return side * side;
+    }
+
+    public double calculatePerimeter() {
+        return 4 * side;
+    }
+}
+----
+
+== 9. Collapse Hierarchy
+Проблема: У вас є деяка ієрархія класів, в якій підклас мало чим відрізняється від суперкласу.
+
+Рішення: Злийте підклас і суперклас воєдино.
+
+[source, java]
+----
+class Animal {
+    private String species;
+
+    public Animal(String species) {
+        this.species = species;
+    }
+
+    public void eat() {
+        System.out.println("The animal is eating.");
+    }
+
+    public void sleep() {
+        System.out.println("The animal is sleeping.");
+    }
+}
+
+class Dog extends Animal {
+    public Dog(String species) {
+        super(species);
+    }
+
+    public void bark() {
+        System.out.println("The dog is barking.");
+    }
+}
+----
+
+== 10. Form Template Method
+Проблема: В підкласах реалізовані алгоритми, що містять схожі кроки і однаковий порядок виконання цих кроків.
+
+Рішення: Винесіть структуру алгоритму і однакові кроки в суперклас, а в підкласах залиште реалізацію кроків, що відрізняються.
+
+[source, java]
+----
+class CookingRecipe {
+    public void prepareRecipe() {
+        boilWater();
+        addIngredients();
+        cook();
+        serve();
+    }
+
+    private void boilWater() {
+        System.out.println("Boiling water");
+    }
+
+    private void addIngredients() {
+        System.out.println("Adding ingredients");
+    }
+
+    private void cook() {
+        System.out.println("Cooking");
+    }
+
+    private void serve() {
+        System.out.println("Serving");
+    }
+}
+
+class PastaRecipe extends CookingRecipe {
+    @Override
+    public void addIngredients() {
+        System.out.println("Adding pasta");
+    }
+
+    @Override
+    public void cook() {
+        System.out.println("Cooking pasta");
+    }
+}
+
+class CakeRecipe extends CookingRecipe {
+    @Override
+    public void addIngredients() {
+        System.out.println("Adding flour, sugar, eggs, etc.");
+    }
+
+    @Override
+    public void cook() {
+        System.out.println("Baking the cake in the oven");
+    }
+}
+----
+
+== 11. Replace Inheritance with Delegation
+Проблема: У вас є підклас, який використовує тільки частину методів суперкласу або не хоче наслідувати його дані.
+
+Рішення: Створіть поле і помістіть в нього об’єкт суперкласу, делегуйте виконання методів об’єкта суперкласу, приберіть наслідування.
+
+[source, java]
+----
+class Animal {
+    void eat() {
+        System.out.println("Animal is eating");
+    }
+
+    void sleep() {
+        System.out.println("Animal is sleeping");
+    }
+}
+
+class Dog extends Animal {
+    void bark() {
+        System.out.println("Dog is barking");
+    }
+}
+
+class Person {
+    private final Animal animal;
+
+    public Person(Animal animal) {
+        this.animal = animal;
+    }
+
+    void interactWithAnimal() {
+        animal.eat();
+        animal.sleep();
+    }
+}
+----
+
+== 12. Replace Delegation with Inheritance
+Проблема: Клас містить безліч простих делегуючих методів до усіх методів іншого класу.
+
+Рішення: Зробіть клас спадкоємцем делегата, після чого делегуючі методи втратять сенс.
+
+[source, java]
+----
+class Printer {
+    void print(String document) {
+        System.out.println("Printing: " + document);
+    }
+}
+
+class SecurePrinter {
+    private final Printer printer = new Printer();
+
+    void printSecurely(String document) {
+        System.out.println("Printing securely: " + document);
+        printer.print(document);
+    }
+}
+----

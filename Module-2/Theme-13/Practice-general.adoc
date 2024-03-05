@@ -1,0 +1,113 @@
+Уявімо, що у нас є система управління задачами (Task Management System), яка дозволяє користувачам створювати, переглядати, редагувати та видаляти задачі. Застосувати різні методи рефакторингу для покращення коду.
+
+Розширити функціональність цієї системи управління задачами, щоб мати більше можливостей для застосування методів рефакторингу:
+
+. Додавання пріоритетів до задач: Розширте клас Task, додавши поле priority, що дозволить встановлювати пріоритети для кожної задачі. Це відкриє можливість застосувати деякі методи рефакторингу, такі як додавання параметру або введення методу.
+
+. Створення категорій для задач: Додайте поле category до класу Task, яке дозволить групувати задачі за різними категоріями, наприклад, "Робота", "Особисте", "Навчання" і т. д. Це може сприяти використанню витягування класу або введення параметру для розширення функціональності.
+
+. Підтримка дати завершення: Додайте поле dueDate до класу Task, щоб вказати дату, до якої повинна бути завершена задача. Це може відкрити можливості для застосування методів рефакторингу, таких як введення методу або розділення методу.
+
+. Додавання користувацьких фільтрів: Розширте функціональність TaskManager, додавши методи для фільтрації списку задач за різними критеріями, такими як статус завершення, пріоритет, категорія або дата завершення. Це може допомогти в застосуванні методів рефакторингу, таких як розділення методу або параметризація методу.
+
+. Підтримка керування користувачами: Додайте можливість реєстрації та аутентифікації користувачів до системи, а також розширені можливості управління доступом до задач для різних користувачів. Це може відкрити можливості для застосування методів рефакторингу, таких як розділення методу або введення параметру.
+
+[source, java]
+----
+import java.util.ArrayList;
+import java.util.List;
+
+// Клас, що представляє задачу
+class Task {
+    private String title;
+    private String description;
+    private boolean completed;
+
+    public Task(String title, String description) {
+        this.title = title;
+        this.description = description;
+        this.completed = false;
+    }
+
+    public String getTitle() {
+        return title;
+    }
+
+    public void setTitle(String title) {
+        this.title = title;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    public boolean isCompleted() {
+        return completed;
+    }
+
+    public void setCompleted(boolean completed) {
+        this.completed = completed;
+    }
+
+    @Override
+    public String toString() {
+        return "Task{" +
+                "title='" + title + '\'' +
+                ", description='" + description + '\'' +
+                ", completed=" + completed +
+                '}';
+    }
+}
+
+// Клас, що представляє систему управління задачами
+class TaskManager {
+    private List<Task> tasks;
+
+    public TaskManager() {
+        this.tasks = new ArrayList<>();
+    }
+
+    public void addTask(Task task) {
+        tasks.add(task);
+    }
+
+    public void removeTask(Task task) {
+        tasks.remove(task);
+    }
+
+    public void markTaskAsCompleted(Task task) {
+        task.setCompleted(true);
+    }
+
+    public void displayAllTasks() {
+        for (Task task : tasks) {
+            System.out.println(task);
+        }
+    }
+}
+
+public class Main {
+    public static void main(String[] args) {
+        TaskManager taskManager = new TaskManager();
+
+        // Додавання нових задач
+        Task task1 = new Task("Підготувати презентацію", "Підготувати презентацію для зустрічі з клієнтом");
+        Task task2 = new Task("Вивчити Java", "Вивчити основи програмування на Java");
+        taskManager.addTask(task1);
+        taskManager.addTask(task2);
+
+        // Позначення задачі як виконаної
+        taskManager.markTaskAsCompleted(task1);
+
+        // Видалення задачі
+        taskManager.removeTask(task2);
+
+        // Виведення всіх задач
+        taskManager.displayAllTasks();
+    }
+}
+----
