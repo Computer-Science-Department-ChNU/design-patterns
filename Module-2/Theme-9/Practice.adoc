@@ -1,0 +1,267 @@
+= Техніки рефакторингу (Переміщення функцій між об'єктами)
+:toc:
+:toc-title: Зміст
+
+== 1. Move Method
+Проблема: Метод використовується в іншому класі більше, ніж у власному.
+
+Рішення: Створіть новий метод в класі, який використовує його більше інших, і перенесіть туди код із старого методу. Код оригінального методу перетворіть на звернення до нового методу в іншому класі або приберіть його взагалі.
+
+У цьому прикладі метод calculateInterest() використовується в класі Account, але його функціональність більше пов'язана з класом Bank, який відповідає за обробку рахунків та обчислення відсотків. Застосувати техніку Move Method.
+
+[source, java]
+----
+public class Account {
+
+    private double balance;
+    private double interestRate;
+
+    // Конструктор та інші методи класу...
+
+    public void calculateInterest() {
+        double interest = balance * interestRate / 100;
+        System.out.println("Interest calculated: " + interest);
+        // Логіка для обчислення відсотків...
+    }
+}
+
+public class Bank {
+
+    private List<Account> accounts;
+
+    // Конструктор та інші методи класу...
+
+    public void processAccounts() {
+        for (Account account : accounts) {
+            account.calculateInterest();
+        }
+    }
+}
+----
+
+== 2. Move Field
+Проблема: Поле використовується в іншому класі більше, ніж у власному.
+
+Рішення: Створіть поле в новому класі і перенаправляйте до нього всіх користувачів старого поля.
+
+У цьому прикладі поле salary використовується в класі Employee, але його функціональність більше пов'язана з класом Company, який відповідає за управління співробітниками та їхньою зарплатою. Застосувати техніку Move Field.
+[source, java]
+----
+public class Employee {
+
+    private String name;
+    private double salary;
+
+    // Конструктор та інші методи класу...
+
+    public double getSalary() {
+        return salary;
+    }
+}
+
+public class Company {
+
+    private List<Employee> employees;
+
+    // Конструктор та інші методи класу...
+
+    public void printEmployeeSalaries() {
+        for (Employee employee : employees) {
+            System.out.println(employee.getName() + ": " + employee.getSalary());
+        }
+    }
+}
+----
+
+== 3. Extract Class
+Проблема: Один клас працює за двох.
+
+Рішення: Створіть новий клас, перемістіть в нього поля і методи, що відповідають за певну функціональність.
+
+У цьому прикладі клас Employee відповідає за зберігання даних про працівника і виведення деталей про нього. Проте, може бути краще витягнути виведення деталей у власний клас. Застосувати техніку Extract Class, щоб створити окремий клас EmployeePrinter для виведення деталей працівника.
+
+[source, java]
+----
+public class Employee {
+
+    private String name;
+    private String department;
+    private double salary;
+
+    // Конструктор та інші методи класу...
+
+    public void printEmployeeDetails() {
+        System.out.println("Name: " + name);
+        System.out.println("Department: " + department);
+        System.out.println("Salary: " + salary);
+    }
+
+    // Інші методи класу...
+}
+----
+
+== 4. Inline Class
+Проблема: Клас майже нічого не робить, ні за що не відповідає, і ніякої відповідальності для цього класу не планується.
+
+Рішення: Перемістіть усі фічі з цього класу в інший.
+
+У цьому прикладі клас Address майже нічого не робить, крім зберігання адреси. Його функціональність може бути легко вбудована в клас Person. Застосувати техніку Inline Class.
+
+[source, java]
+----
+public class Address {
+
+    private String street;
+    private String city;
+    private String country;
+
+    // Конструктор, геттери та сеттери...
+}
+
+public class Person {
+
+    private String name;
+    private Address address;
+
+    // Конструктор, геттери та сеттери...
+
+    public void printAddress() {
+        System.out.println("Address: " + address.getStreet() + ", " + address.getCity() + ", " + address.getCountry());
+    }
+}
+
+public class Main {
+    public static void main(String[] args) {
+        Person person = new Person();
+        person.printAddress();
+    }
+}
+----
+
+== 5. Hide Delegate
+Проблема: Клієнт отримує об’єкт B з поля або методу об’єкта А. Потім клієнт викликає якийсь метод об’єкта B.
+
+Рішення: Створіть новий метод в класі А, який би делегував виклик об’єкта B. Таким чином, клієнт перестане знати про клас В і залежати від нього.
+
+У цьому прикладі клас Employee містить посилання на об'єкт Department, і клас Department містить посилання на об'єкт Employee. Клієнт може отримати менеджера через об'єкт Department і потім отримати ім'я менеджера через об'єкт Employee. Застосувати техніку Hide Delegate.
+
+[source, java]
+----
+public class Department {
+
+    private String name;
+    private Employee manager;
+
+    // Конструктор та інші методи класу...
+
+    public Employee getManager() {
+        return manager;
+    }
+}
+
+public class Employee {
+
+    private String name;
+    private Department department;
+
+    // Конструктор та інші методи класу...
+
+    public Department getDepartment() {
+        return department;
+    }
+}
+----
+
+== 6. Remove Middle Man
+Проблема: Клас має занадто багато методів, які просто делегують роботу іншим об’єктам.
+
+Рішення: Видаліть ці методи і змусьте клієнта викликати кінцеві методи безпосередньо.
+
+У цьому прикладі клас Employee має метод getDepartmentManagerName(), який лише делегує виклик методу getManagerName() об'єкта Department. Застосувати техніку Remove Middle Man.
+
+[source, java]
+----
+public class Department {
+
+    private String name;
+    private Employee manager;
+
+    // Конструктор та інші методи класу...
+
+    public String getManagerName() {
+        return manager.getName();
+    }
+}
+
+public class Employee {
+
+    private String name;
+    private Department department;
+
+    // Конструктор та інші методи класу...
+
+    public String getDepartmentManagerName() {
+        return department.getManagerName();
+    }
+}
+----
+
+== 7. Introduce Foreign Method
+Проблема: Службовий клас не містить методу, який вам потрібен, при цьому у вас немає можливості додати метод в цей клас.
+
+Рішення: Додайте метод в клієнтський клас і передавайте в нього об’єкт службового класу в якості аргументу.
+
+У цьому прикладі метод isWeekend() знаходиться в класі DateUtils, але його функціональність більше пов'язана з обробкою календарних дат, що є частиною функціональності класу Calendar. Проте, ми не можемо додати цей метод до класу Calendar, оскільки він стандартний і не може бути змінений. Застосувати техніку Introduce Foreign Method, створивши метод isWeekend() у класі Client та передаючи в нього об'єкт Calendar в якості аргументу.
+
+[source, java]
+----
+import java.util.Calendar;
+
+public class DateUtils {
+
+    // Інші методи класу...
+
+    public static boolean isWeekend(Calendar date) {
+        int dayOfWeek = date.get(Calendar.DAY_OF_WEEK);
+        return dayOfWeek == Calendar.SATURDAY || dayOfWeek == Calendar.SUNDAY;
+    }
+}
+
+public class Client {
+
+    // Інші методи класу...
+
+    public void doSomething() {
+        Calendar currentDate = Calendar.getInstance();
+        if (DateUtils.isWeekend(currentDate)) {
+            System.out.println("It's weekend!");
+        } else {
+            System.out.println("It's not weekend!");
+        }
+    }
+}
+
+----
+
+== 8. Introduce Local Extension
+Проблема: В службовому класі відсутні деякі методи, які вам потрібні. При цьому додати їх в цей клас ви не можете.
+
+Рішення: Створіть новий клас, який би містив ці методи, і зробіть його спадкоємцем службового класу, або його обгорткою.
+
+Нехай уявімо, що у нас є такий клас DateHelper, який надає допоміжні методи для роботи з датами. Але, допустимо, ми хочемо додати метод для вирахування різниці між двома датами. Використати "Introduce Local Extension", щоб створити локальне розширення цього класу DateHelperExtended. Привести код де можна тепер використати DateHelperExtended для отримання різниці між двома датами, не змінюючи вихідний DateHelper.
+
+[source, java]
+----
+public class DateHelper {
+
+    // Даний клас надає допоміжні функції пов'язані з роботою з датами.
+
+    public static Date addDays(Date date, int days) {
+        // Логіка додавання днів до дати.
+    }
+
+    // Інші методи класу...
+}
+----
+
+
