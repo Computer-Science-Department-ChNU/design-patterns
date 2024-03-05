@@ -1,0 +1,278 @@
+= Техніки рефакторингу (Складання методів)
+:toc:
+:toc-title: Зміст
+
+== 1. Extract Method
+Проблема: У вас є фрагмент коду, який можна згрупувати.
+
+Рішення: Виділіть цей фрагмент в новий метод (чи функцію) і викличте його замість старого коду.
+
+У цьому коді метод calculateSalary робить кілька операцій: розрахунок зарплати, розрахунок премії та обчислення податків. Це призводить до довгого та важкозрозумілого коду. Витягнути кожен окремий фрагмент коду у власні методи (calculateBaseSalary, calculateBonus, calculateNetSalary), щоб полегшити розуміння та підтримку коду.
+
+[source, java]
+----
+public class SalaryCalculator {
+
+    public double calculateSalary(Employee employee) {
+        // Розрахунок зарплати співробітника
+        double baseSalary = employee.getBaseSalary();
+        int overtimeHours = employee.getOvertimeHours();
+        double bonusPercentage = employee.getBonusPercentage();
+        double taxRate = employee.getTaxRate();
+
+        double totalSalary = baseSalary;
+
+        if (overtimeHours > 0) {
+            double overtimePay = overtimeHours * baseSalary * 1.5;
+            totalSalary += overtimePay;
+        }
+
+        double bonus = baseSalary * bonusPercentage / 100;
+        totalSalary += bonus;
+
+        // Розрахунок податків
+        double taxAmount = totalSalary * taxRate / 100;
+        double netSalary = totalSalary - taxAmount;
+
+        return netSalary;
+    }
+
+    // Інші методи класу...
+}
+----
+
+== 2. Inline Method
+Проблема: Варто використовувати у випадках, коли тіло методу очевидніше за сам метод.
+
+Рішення: Замініть виклики методу його вмістом і видаліть сам метод.
+
+У цьому коді метод calculateDiscount викликається з методу calculateTotalPrice, але його тіло складається лише з одного if-else оператора, який легко можна вбудувати безпосередньо у метод calculateTotalPrice. Застосувати прийом Inline Method для заміни виклику методу його вмістом.
+
+[source, java]
+----
+public class Calculator {
+
+    public double calculateTotalPrice(double price, int quantity) {
+        double totalPrice = price * quantity;
+        double discount = calculateDiscount(quantity);
+        totalPrice -= discount;
+        return totalPrice;
+    }
+
+    private double calculateDiscount(int quantity) {
+        if (quantity > 10) {
+            return 0.1 * quantity;
+        } else {
+            return 0;
+        }
+    }
+
+    // Інші методи класу...
+}
+----
+
+== 3. Extract Variable
+Проблема: У вас є складний для розуміння вираз.
+
+Рішення: Помістіть результат виразу або його частини в окремі змінні, що пояснюють суть виразу.
+
+У цьому коді вирази для обчислення площі та довжини окружності повторюються в методах calculateArea та calculateCircumference. Також, в методі printCircleDetails вони також повторюються, що робить код менш зрозумілим та складним для підтримки. Витягнути ці вирази у власні змінні, що допоможе покращити читабельність та підтримку коду.
+
+[source, java]
+----
+public class Circle {
+
+    private double radius;
+
+    public Circle(double radius) {
+        this.radius = radius;
+    }
+
+    public double calculateArea() {
+        return Math.PI * radius * radius;
+    }
+
+    public double calculateCircumference() {
+        return 2 * Math.PI * radius;
+    }
+
+    public void printCircleDetails() {
+        System.out.println("Circle with radius " + radius);
+        System.out.println("Area: " + (Math.PI * radius * radius));
+        System.out.println("Circumference: " + (2 * Math.PI * radius));
+    }
+
+    // Інші методи класу...
+}
+
+----
+
+== 4. Inline Temp
+Проблема: У вас є локальна змінна, якій присвоюється результат простого виразу (і більше нічого).
+
+Рішення: Замініть звернення до змінної цим виразом.
+
+У цьому коді локальна змінна tempInCelsius призначається результату простого виразу для перетворення температури з Фаренгейта в Цельсії. Однак ця змінна використовується лише один раз та не додає ясності або розуміння коду. Застосувати прийом Inline Temp, замінивши звернення до змінної виразом.
+
+[source, java]
+----
+public class TemperatureConverter {
+
+    public double convertToCelsius(double fahrenheit) {
+        double tempInCelsius = (fahrenheit - 32) * 5 / 9;
+        return tempInCelsius;
+    }
+
+    // Інші методи класу...
+}
+----
+
+== 5. Replace Temp with Query
+Проблема: Ви розміщуєте результат якогось виразу в локальній змінній, щоб використати її далі в коді.
+
+Рішення: Виділіть цей вираз в окремий метод і повертайте результат з нього. Замініть використання вашої змінної викликом методу. Новий метод може бути використаний і в інших методах.
+
+У цьому коді результат виразу itemPrice * quantity зберігається у локальній змінній itemTotalPrice, яка використовується тільки один раз та не додає ясності коду. Застосувати прийом Replace Temp with Query, витягнувши цей вираз у окремий метод calculateItemTotalPrice.
+
+[source, java]
+----
+public class ShoppingCart {
+
+    private List<Item> items;
+
+    public double calculateTotalPrice() {
+        double totalPrice = 0;
+        for (Item item : items) {
+            double itemPrice = item.getPrice();
+            int quantity = item.getQuantity();
+            double itemTotalPrice = itemPrice * quantity;
+            totalPrice += itemTotalPrice;
+        }
+        return totalPrice;
+    }
+
+    // Інші методи класу...
+}
+----
+
+== 6. Split Temporary Variable
+Проблема: У вас є локальна змінна, яка використовується для зберігання різноманітних значень всередині методу (не рахуючи змінних циклів).
+
+Рішення: Використайте різні змінні для різних значень. Кожна змінна повинна відповідати тільки за одну певну річ.
+
+У цьому коді використовується локальна змінна monthlyInterest, яка обчислюється як interestRate / 12, і totalPayments, яка обчислюється як loanTermYears * 12. Ці змінні використовуються лише один раз, але обчислюються разом з іншими значеннями. Застосувати прийом Split Temporary Variable, розділивши ці змінні на окремі.
+
+[source, java]
+----
+public class LoanCalculator {
+
+    public double calculateLoanInterest(double loanAmount, double annualInterestRate, int loanTermYears) {
+        double interestRate = annualInterestRate / 100;
+        double totalInterest = 0;
+
+        double monthlyInterest = interestRate / 12;
+        double totalPayments = loanTermYears * 12;
+
+        for (int i = 0; i < totalPayments; i++) {
+            totalInterest += loanAmount * monthlyInterest;
+        }
+
+        return totalInterest;
+    }
+
+    // Інші методи класу...
+}
+----
+
+== 7. Remove Assignments to Parameters
+Проблема: Параметру методу присвоюється якесь значення.
+
+Рішення: Замість параметра скористайтеся новою локальною змінною.
+
+У цьому коді параметр методу addUser (об'єкт user) використовується для присвоєння значення true полю registered об'єкту користувача. Це може призвести до непередбачуваної поведінки, оскільки зміни в параметрах методу можуть вплинути на зовнішні об'єкти. Застосувати прийом Remove Assignments to Parameters, використавши нову локальну змінну для зберігання параметра методу
+
+[source, java]
+----
+public class UserManager {
+
+    private List<User> users;
+
+    public void addUser(User user) {
+        if (user != null) {
+            user.setRegistered(true);
+            users.add(user);
+        }
+    }
+
+    // Інші методи класу...
+}
+----
+
+== 8. Replace Method with Method Object
+Проблема: У вас є довгий метод, в якому локальні змінні так сильно переплетені, що це робить неможливим застосування відокремлення методу.
+
+Рішення: Перетворіть метод в окремий клас так, щоб локальні змінні стали полями цього класу. Після цього можна без проблем розділити метод на частини.
+
+У цьому коді метод processOrder виконує багато операцій, залежних від параметру order, і використовує багато локальних змінних. Застосувати прийом Replace Method with Method Object, перетворивши метод в окремий клас OrderProcessorHelper
+
+[source, java]
+----
+public class OrderProcessor {
+
+    public void processOrder(Order order) {
+        double totalCost = 0;
+        int itemCount = order.getItemCount();
+
+        for (int i = 0; i < itemCount; i++) {
+            Item item = order.getItem(i);
+            double itemPrice = item.getPrice();
+            int quantity = item.getQuantity();
+
+            totalCost += itemPrice * quantity;
+        }
+
+        Customer customer = order.getCustomer();
+        if (customer.isVIP()) {
+            totalCost -= totalCost * 0.1; // 10% знижка для VIP-клієнтів
+        }
+
+        order.setTotalCost(totalCost);
+        order.setStatus("Processed");
+    }
+
+    // Інші методи класу...
+}
+
+----
+
+== 9. Substitute Algorithm
+Проблема: Ви хочете замінити існуючий алгоритм іншим?
+
+Рішення: Замініть тіло методу, що реалізує старий алгоритм, новим алгоритмом.
+
+У цьому коді метод manipulateString змінює регістр кожного символу у вхідному рядку: перетворює великі літери у малі та навпаки. Однак цей підхід може бути неефективним, особливо для великих рядків, оскільки використовується конкатенація рядків, що призводить до створення нових об'єктів рядків на кожній ітерації циклу. Застосувати підхід Substitute Algorithm, замінивши цикл із зміною регістру на більш ефективний підхід, наприклад, використовуючи об'єкт StringBuilder:
+
+[source, java]
+----
+public class StringManipulator {
+
+    public String manipulateString(String input) {
+        String result = "";
+
+        for (int i = 0; i < input.length(); i++) {
+            char ch = input.charAt(i);
+            if (Character.isLowerCase(ch)) {
+                result += Character.toUpperCase(ch);
+            } else if (Character.isUpperCase(ch)) {
+                result += Character.toLowerCase(ch);
+            } else {
+                result += ch;
+            }
+        }
+
+        return result;
+    }
+
+    // Інші методи класу...
+}
+----
