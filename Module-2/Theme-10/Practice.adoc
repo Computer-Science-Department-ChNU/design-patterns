@@ -1,0 +1,468 @@
+= Техніки рефакторингу (Організація даних)
+
+== 1. Self Encapsulate Field
+Проблема: Ви використовуєте прямий доступ до приватних полів усередині класу.
+
+Рішення: Створіть геттер і сеттер для поля, і користуйтеся для доступу до поля тільки ними.
+
+У цьому прикладі поле salary використовується без використання геттера і сеттера, просто звертаючись до нього напряму в методі raiseSalary. Це порушує принцип інкапсуляції, оскільки доступ до поля здійснюється прямо. Використати техніку Self Encapsulate Field.
+
+[source, java]
+----
+public class Employee {
+
+    private String name;
+    private double salary;
+
+    // Конструктор та інші методи класу...
+
+    public void raiseSalary(double amount) {
+        if (amount > 0) {
+            salary += amount;
+        }
+    }
+
+    public double getSalary() {
+        return salary;
+    }
+
+    // Інші методи класу...
+}
+
+----
+
+== 2. Replace Data Value with Object
+Проблема: В класі (чи групі класів) є поле простого типу. У цього поля є своя поведінка і пов’язані дані.
+
+Рішення: Створіть новий клас, помістіть в нього старе поле та його поведінку, зберігайте об’єкт цього класу в початковому класі.
+
+У цьому прикладі клас Order представляє замовлення з полями customer (покупець) та amount (сума замовлення). Однак, ці дані пов'язані між собою та мають свою власну поведінку, яку можна було б узагальнити. Застосувати техніку Replace Data Value with Object.
+
+[source, java]
+----
+public class Order {
+
+    private String customer;
+    private double amount;
+
+    // Конструктор та інші методи класу...
+
+    public Order(String customer, double amount) {
+        this.customer = customer;
+        this.amount = amount;
+    }
+
+    public String getCustomer() {
+        return customer;
+    }
+
+    public void setCustomer(String customer) {
+        this.customer = customer;
+    }
+
+    public double getAmount() {
+        return amount;
+    }
+
+    public void setAmount(double amount) {
+        this.amount = amount;
+    }
+
+    // Інші методи класу...
+}
+----
+
+== 3. Change Value to Reference
+Проблема: Є багато однакових екземплярів одного класу, які можна замінити одним об’єктом.
+
+Рішення: Перетворіть однакові об’єкти на один об’єкт-посилання.
+
+У цьому прикладі кожен екземпляр класу Product містить свій власний екземпляр класу Currency. Це призводить до зайвого використання пам'яті, особливо якщо у нас є багато продуктів з однаковою валютою. Застосувати техніку Change Value to Reference, щоб використовувати один екземпляр Currency для всіх продуктів з однаковою валютою
+
+[source, java]
+----
+public class Currency {
+
+    private String code;
+
+    // Конструктор та інші методи класу...
+
+    public Currency(String code) {
+        this.code = code;
+    }
+
+    public String getCode() {
+        return code;
+    }
+
+    // Інші методи класу...
+}
+
+public class Product {
+
+    private String name;
+    private double price;
+    private Currency currency;
+
+    // Конструктор та інші методи класу...
+
+    public Product(String name, double price, String currencyCode) {
+        this.name = name;
+        this.price = price;
+        this.currency = new Currency(currencyCode); // Кожний продукт має свій екземпляр валюти
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public double getPrice() {
+        return price;
+    }
+
+    public String getCurrencyCode() {
+        return currency.getCode();
+    }
+
+    // Інші методи класу...
+}
+----
+
+== 4. Change Reference to Value
+Проблема: У вас є об’єкт-посилання, який занадто маленький і незмінний, щоб виправдати складнощі по управлінню його життєвим циклом.
+
+Рішення: Перетворіть його на об’єкт-значення.
+
+Припустимо, ми маємо клас, який представляє точку на координатній площині. Цей клас Point є об'єктом-посиланням, оскільки він є невеликим і незмінним. Це означає, що його можна замінити на об'єкт-значення. Створити новий клас ImmutablePoint, який буде об'єктом-значенням.
+
+[source, java]
+----
+public class Point {
+    private final int x;
+    private final int y;
+
+    public Point(int x, int y) {
+        this.x = x;
+        this.y = y;
+    }
+
+    public int getX() {
+        return x;
+    }
+
+    public int getY() {
+        return y;
+    }
+}
+----
+
+== 5. Replace Array with Object
+Проблема: У вас є масив, в якому зберігаються різнотипні дані.
+
+Рішення: Замініть масив об’єктом, який матиме окремі поля для кожного елементу.
+
+Розглянемо приклад, де ми маємо масив для зберігання інформації про різні автомобілі. Клас CarData містить масиви різнотипних даних про автомобілі: імена, ціни і роки випуску. Замість цього створити окремий клас Car, який буде мати поля для кожного елементу масиву. Використати клас Car для зберігання інформації про кожен автомобіль у CarData. Тобто у класі CarData використовуємо список (або іншу колекцію) об'єктів класу Car, що дозволяє зберігати дані про автомобілі більш структуровано та зрозуміло.
+
+[source, java]
+----
+public class CarData {
+    private String[] carNames;
+    private int[] carPrices;
+    private int[] carYears;
+
+    public CarData(String[] carNames, int[] carPrices, int[] carYears) {
+        this.carNames = carNames;
+        this.carPrices = carPrices;
+        this.carYears = carYears;
+    }
+
+    // Додаткові методи для роботи з масивом...
+}
+----
+
+== 6. Duplicate Observed Data
+Проблема: Дані предметної області програми зберігаються в класах, що відповідають за призначений для користувача інтерфейс (GUI).
+
+Рішення: Має сенс виділити дані предметної області в окремі класи і, таким чином, забезпечити зв’язок і синхронізацію між класом предметної області і GUI.
+
+Розглянемо клас OrderManager для управління замовленнями в інтернет-магазині, який містить дані про замовлення. Цей клас містить дані, які використовуються в GUI для відображення та редагування замовлень. Однак, якщо ці дані також використовуються в інших частинах програми, це може призвести до дублювання даних і проблем з їх синхронізацією. Вирішити цю проблему, виділивши дані предметної області в окремий клас Order.
+
+[source, java]
+----
+public class OrderManager {
+    private String customerName;
+    private String productName;
+    private int quantity;
+
+    // Конструктор, геттери і сеттери, інші методи класу...
+}
+
+----
+
+== 7. Change Unidirectional Association to Bidirectional
+Проблема: У вас є два класи, яким потрібно використовувати фічі один одного, але між ними існує тільки односторонній зв’язок.
+
+Рішення: Додайте бракуючий зв’язок у клас, в якому він відсутній.
+
+Припустимо, у нас є два класи: Student та Course. Поки що вони мають односторонній зв'язок, де Student може взяти курс, але Course не знає про студентів, які його взяли. Змінти цей односторонній зв'язок на двосторонній, додавши посилання на студентів у клас Course. Тобто, зробити так, що коли студент записується на курс, відбувався обмін інформацією: студент додається до списку студентів курсу.
+
+[source, java]
+----
+import java.util.ArrayList;
+import java.util.List;
+
+public class Student {
+    private String name;
+    private List<Course> courses;
+
+    public Student(String name) {
+        this.name = name;
+        this.courses = new ArrayList<>();
+    }
+
+    public void enrollCourse(Course course) {
+        courses.add(course);
+    }
+
+    // Додаткові методи...
+}
+
+public class Course {
+    private String title;
+
+    public Course(String title) {
+        this.title = title;
+    }
+
+    // Додаткові методи...
+}
+----
+
+== 8. Change Bidirectional Association to Unidirectional
+Проблема: У вас є двосторонній зв’язок між класами, але один з класів більше не використовує фічі іншого.
+
+Рішення: Приберіть невживаний зв’язок.
+
+Припустимо, що у нас є два класи: Department та Employee. Початково вони мають двосторонній зв'язок, де відділ містить посилання на працівників, а працівник містить посилання на відділ. Змінити цей двосторонній зв'язок на односторонній.
+
+[source, java]
+----
+import java.util.List;
+
+public class Department {
+    private String name;
+    private List<Employee> employees;
+
+    public Department(String name, List<Employee> employees) {
+        this.name = name;
+        this.employees = employees;
+    }
+
+    // Додаткові методи...
+}
+
+public class Employee {
+    private String name;
+    private Department department;
+
+    public Employee(String name, Department department) {
+        this.name = name;
+        this.department = department;
+    }
+
+    // Додаткові методи...
+}
+----
+
+== 9. Replace Magic Number with Symbolic Constant
+Проблема: В коді використовується число, яке несе якийсь певний сенс.
+
+Рішення: Замініть це число константою з такою назвою, що пояснює сенс цього числа.
+
+[source, java]
+----
+public class Example {
+    public static void main(String[] args) {
+        List<String> items = new ArrayList<>();
+
+        // Додавання елементів у список
+        for (int i = 0; i < 100; i++) {
+            items.add("Item " + i);
+        }
+    }
+}
+----
+
+== 10. Encapsulate Field
+Проблема: У вас є публічне поле.
+
+Рішення: Зробіть поле приватним і створіть для нього методи доступу.
+
+[source, java]
+----
+public class Person {
+    public int age;
+
+    public Person(int age) {
+        this.age = age;
+    }
+}
+----
+
+== 11. Encapsulate Collection
+Проблема: Клас містить поле-колекцію, а також простий геттер і сеттер для роботи з цією колекцією.
+
+Рішення: Зробіть значення, що повертає геттер, доступним тільки для читання, а також створіть методи додавання/видалення елементів цієї колекції.
+
+Змінити методи доступу до колекції таким чином, щоб значення, яке повертається геттером, було доступним тільки для читання, а методи додавання/видалення елементів були контрольовані самим класом
+
+[source, java]
+----
+import java.util.List;
+
+public class Library {
+    private List<Book> books;
+
+    public Library(List<Book> books) {
+        this.books = books;
+    }
+
+    public List<Book> getBooks() {
+        return books;
+    }
+
+    public void setBooks(List<Book> books) {
+        this.books = books;
+    }
+}
+----
+
+== 12. Replace Type Code with Class
+Проблема: У класі є поле, що містить кодування типу. Значення цього типу не використовуються в умовних операторах і не впливають на поведінку програми.
+
+Рішення: Створіть новий клас і застосовуйте його об’єкти замість значень закодованого типу.
+
+Припустимо, що у нас є клас Product, у якого є поле typeCode, що кодує тип продукту. Замість використання коду типу, створити новий клас ProductType, який буде представляти різні типи продуктів.
+
+[source, java]
+----
+public class Product {
+    private int typeCode;
+    private String name;
+
+    public Product(int typeCode, String name) {
+        this.typeCode = typeCode;
+        this.name = name;
+    }
+
+    // Додаткові методи...
+}
+----
+
+== 13. Replace Type Code with Subclasses
+Проблема: У вас є закодований тип, який безпосередньо впливає на поведінку програми (ґрунтуючись на значеннях цього поля, в умовних операторах виконується різний код).
+
+Рішення: Для кожного значення закодованого типу створіть підкласи. А потім винесіть відповідну поведінку з початкового класу в ці підкласи. Код, що управляє, замініть поліморфізмом.
+
+Припустимо, що у нас є клас Product, у якого є поле typeCode, яке визначає тип продукту. Перетворити цей клас на ієрархію класів, де кожен тип продукту буде представлений окремим підкласом Product.
+
+[source, java]
+----
+public class Product {
+    private int typeCode;
+    private String name;
+
+    public Product(int typeCode, String name) {
+        this.typeCode = typeCode;
+        this.name = name;
+    }
+
+    public void process() {
+        if (typeCode == 1) {
+            // Поведінка для типу 1
+        } else if (typeCode == 2) {
+            // Поведінка для типу 2
+        } else {
+            // Поведінка за замовчуванням
+        }
+    }
+
+    // Додаткові методи...
+}
+----
+
+== 14. Replace Type Code with State/Strategy
+Проблема: У вас є закодований тип, який впливає на поведінку, але ви не можете використати підкласи, щоби позбутися від нього.
+
+Рішення: Замініть кодування типу об’єктом-станом. При необхідності замінити значення поля з кодуванням типу в нього підставляється інший об’єкт-стан.
+
+Припустимо, що у нас є клас Order, у якого є поле status, що кодує статус замовлення. Замінити це кодування типу об'єктом-станом, створивши окремий клас OrderStatus, який буде представляти стани замовлення, і винісши поведінку для кожного стану у відповідний об'єкт-стан
+
+[source, java]
+----
+public class Order {
+    private int status;
+
+    public static final int NEW = 0;
+    public static final int PROCESSING = 1;
+    public static final int COMPLETED = 2;
+    public static final int CANCELLED = 3;
+
+    public Order() {
+        this.status = NEW;
+    }
+
+    // Інші методи класу...
+}
+
+----
+
+== 15. Replace Subclass with Fields
+Проблема: У вас є підкласи, які відрізняються тільки методами, що повертають дані-константи.
+
+Рішення: Замініть методи полями в батьківському класі і видаліть підкласи.
+
+Припустимо, що у нас є клас Shape з підкласами Circle і Rectangle, які відрізняються тільки методами, що повертають константні значення. Замінити ці підкласи полями у класі Shape і використати конструктор або методи для встановлення цих значень.
+
+[source, java]
+----
+public class Shape {
+    // Інші поля та методи
+
+    public double getArea() {
+        return 0; // Заглушка
+    }
+
+    public double getPerimeter() {
+        return 0; // Заглушка
+    }
+}
+
+public class Circle extends Shape {
+    // Інші поля та методи
+
+    @Override
+    public double getArea() {
+        return Math.PI * radius * radius;
+    }
+
+    @Override
+    public double getPerimeter() {
+        return 2 * Math.PI * radius;
+    }
+}
+
+public class Rectangle extends Shape {
+    // Інші поля та методи
+
+    @Override
+    public double getArea() {
+        return width * height;
+    }
+
+    @Override
+    public double getPerimeter() {
+        return 2 * (width + height);
+    }
+}
+----
